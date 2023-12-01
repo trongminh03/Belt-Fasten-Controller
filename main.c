@@ -1,11 +1,11 @@
 #include "MKL46Z4.h"
 // #include <LCD_Library.h> // Assuming you have an LCD library
 
-#define RED_LED_PIN 				(1<<29)			/* buzzer */
-#define GREEN_LED_PIN 			(1<<5)			/* normal */
-#define SW2_PIN             (1 << 12)		/* pin noi voi cam bien nguoi ngoi */
-#define SW1_PIN             (1 << 3) 		/* pin noi voi cam bien that day an toan */
-#define TIME_THRESHOLD 			5000
+#define RED_LED_PIN (1 << 29)  /* buzzer */
+#define GREEN_LED_PIN (1 << 5) /* normal */
+#define SW2_PIN (1 << 12)      /* pin noi voi cam bien nguoi ngoi */
+#define SW1_PIN (1 << 3)       /* pin noi voi cam bien that day an toan */
+#define TIME_THRESHOLD 5000
 
 volatile uint32_t timer = 0; // Timer variable
 
@@ -14,25 +14,28 @@ void delay(uint32_t milliseconds)
     // Implement delay function using a timer or loop to wait for the specified time
 }
 
-void init_LED() {
+void init_LED()
+{
     // enable clock for port E and D
-    SIM->SCGC5 |= (SIM_SCGC5_PORTE_MASK | SIM_SCGC5_PORTD_MASK); 
+    SIM->SCGC5 |= (SIM_SCGC5_PORTE_MASK | SIM_SCGC5_PORTD_MASK);
 
-    // init red led 
+    // init red led
     PORTE->PCR[29] = (1 << 8);
     GPIOE->PDDR |= (1 << 29);
 
     // init green led
     PORTD->PCR[5] = (1 << 8);
-    GPIOD->PDDR |= (1 << 5); 
+    GPIOD->PDDR |= (1 << 5);
 
     // turn off red led
-    PTE->PDOR |= (1u<<29);
+    PTE->PDOR |= RED_LED_PIN;
+    PTD->PDOR |= GREEN_LED_PIN;
 }
 
-void init_switch() {
+void init_switch()
+{
     // Enable clock for PORTC module
-    SIM->SCGC5 |= (uint32_t)SIM_SCGC5_PORTC_MASK; 
+    SIM->SCGC5 |= (uint32_t)SIM_SCGC5_PORTC_MASK;
 
     // Init switch 1
     PORTC->PCR[3] = PORT_PCR_MUX(1) | PORT_PCR_PE_MASK | PORT_PCR_PS_MASK;
@@ -50,28 +53,25 @@ void init_switch() {
     /* Enable NVIC interrupts source for PORTC_C module */
 }
 
-void PORTC_PORTD_IRQHandler(void) {
+void PORTC_PORTD_IRQHandler(void)
+{
     /* Put a proper name of PORTC_PORTD Interrupt service routine ISR. See startup_MKL46Z4.s file for function name */
-    uint32_t i = 0; 
-	for (i =0; i < 500000; i++); 
+    uint32_t i = 0;
+    for (i = 0; i < 500000; i++)
+        ;
 
-	if ((PTC -> PDIR & (1<<3))==0) {
-		PTE->PTOR = (1u<<29); 
-	} 
-
-    if ((PTC -> PDIR & (1<<12))==0) {
-        PTD->PTOR = (1u<<5);
+    if ((PTC->PDIR & (1 << 3)) == 0)
+    {
+        PTE->PTOR = (1u << 29);
     }
 
+    if ((PTC->PDIR & (1 << 12)) == 0)
+    {
+        PTD->PTOR = (1u << 5);
+    }
 
-	PORTC->PCR[3] |= PORT_PCR_ISF_MASK;
+    PORTC->PCR[3] |= PORT_PCR_ISF_MASK;
     PORTC->PCR[12] |= PORT_PCR_ISF_MASK;
-    
-    /*do anything you want here*/
-    // GPIOE->PDDR |= (uint32_t)RED_LED_PIN;
-
-    // PORTC->PCR[SW1_PIN] |= PORT_PCR_ISF_MASK;
-    /* Clear interrupt service flag in port control register otherwise int. remains active */
 }
 
 void initializeGPIO()
@@ -82,7 +82,9 @@ void initializeGPIO()
     // init sensor(switch) nhan interrupt
     init_switch();
 
-    // init interrupt
+    // init LCD
+
+    // init System Tick
 }
 
 int isPersonSeated()
@@ -113,7 +115,7 @@ void seatBeltCheck()
 
     if (seatStatus)
     {
-        if (/* Read seat belt sensor pin */1)
+        if (/* Read seat belt sensor pin */ 1)
         {
             timer = 0; // Reset the timer if seat belt is detected
             // Turn off the red LED
@@ -150,13 +152,13 @@ int main()
     // lcdInit();
 
     // Initialize SysTick timer for 1ms ticks
-    //SysTick_Config(SystemCoreClock / 1000);
+    // SysTick_Config(SystemCoreClock / 1000);
 
     while (1)
     {
-			
-        //seatBeltCheck(); // Check seat belt status and occupancy periodically
-        delay(1);        // Delay to control the frequency of seat status checking
+
+        // seatBeltCheck(); // Check seat belt status and occupancy periodically
+        delay(1); // Delay to control the frequency of seat status checking
     }
 
     return 0;
