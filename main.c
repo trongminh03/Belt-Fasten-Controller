@@ -15,53 +15,74 @@ void delay(uint32_t milliseconds)
 }
 
 void init_LED() {
-  // init led
-  PORTE->PCR[29] &= ~(uint32_t)PORT_PCR_MUX_MASK;
-  PORTE->PCR[29] |= (uint32_t)PORT_PCR_MUX(1);
-  PORTD->PCR[5] &= ~(uint32_t)PORT_PCR_MUX_MASK;
-  PORTD->PCR[5] |= (uint32_t)PORT_PCR_MUX(1);
-  
-	// den do tat boi vi chua co nguoi ngoi
-  // GPIOE->PDDR |= (uint32_t)RED_LED_PIN;
-  
-	// den xanh bat the hien trang thai ok
-  GPIOD->PDDR |= (uint32_t)GREEN_LED_PIN;
+    // enable clock for port E and D
+    SIM->SCGC5 |= (SIM_SCGC5_PORTE_MASK | SIM_SCGC5_PORTD_MASK); 
+
+    // init red led 
+    PORTE->PCR[29] = (1 << 8);
+    GPIOE->PDDR |= (1 << 29);
+
+    // init green led
+    PORTD->PCR[5] = (1 << 8);
+    GPIOD->PDDR |= (1 << 5); 
+
+    // turn off red led
+    PTE->PDOR |= (1u<<29);
 }
 
 void init_switch() {
-	PTC->PDDR &= ~((uint32_t)SW1_PIN);
-	PTC->PDDR &= ~((uint32_t)SW2_PIN);
-	
-	PORTC->PCR[3] |= PORT_PCR_IRQC(0xA);
-	PORTC->PCR[12] |= PORT_PCR_IRQC(0xA);
-	
-	NVIC_ClearPendingIRQ(31);
-	/* Clear NVIC any pending interrupts on PORTC_C */
-	NVIC_EnableIRQ(31);
-	/* Enable NVIC interrupts source for PORTC_C module */
+    // Enable clock for PORTC module
+    SIM->SCGC5 |= (uint32_t)SIM_SCGC5_PORTC_MASK; 
+
+    // Init switch 1
+    PORTC->PCR[3] = PORT_PCR_MUX(1) | PORT_PCR_PE_MASK | PORT_PCR_PS_MASK;
+    PTC->PDDR &= ~((uint32_t)SW1_PIN);
+    PORTC->PCR[3] |= PORT_PCR_IRQC(0xA);
+
+    // Init switch 2
+    PORTC->PCR[12] = PORT_PCR_MUX(1) | PORT_PCR_PE_MASK | PORT_PCR_PS_MASK;
+    PTC->PDDR &= ~((uint32_t)SW2_PIN);
+    PORTC->PCR[12] |= PORT_PCR_IRQC(0xA);
+
+    NVIC_ClearPendingIRQ(31);
+    /* Clear NVIC any pending interrupts on PORTC_C */
+    NVIC_EnableIRQ(31);
+    /* Enable NVIC interrupts source for PORTC_C module */
 }
 
 void PORTC_PORTD_IRQHandler(void) {
-	/* Put a proper name of PORTC_PORTD Interrupt service routine ISR. See startup_MKL46Z4.s file for function name */
-	/*do anything you want here*/
-	GPIOE->PDDR |= (uint32_t)RED_LED_PIN;
-	
-	PORTC->PCR[SW1_PIN] |= PORT_PCR_ISF_MASK;
-	/* Clear interrupt service flag in port control register otherwise int. remains active */
+    /* Put a proper name of PORTC_PORTD Interrupt service routine ISR. See startup_MKL46Z4.s file for function name */
+    uint32_t i = 0; 
+	for (i =0; i < 500000; i++); 
+
+	if ((PTC -> PDIR & (1<<3))==0) {
+		PTE->PTOR = (1u<<29); 
+	} 
+
+    if ((PTC -> PDIR & (1<<12))==0) {
+        PTD->PTOR = (1u<<5);
+    }
+
+
+	PORTC->PCR[3] |= PORT_PCR_ISF_MASK;
+    PORTC->PCR[12] |= PORT_PCR_ISF_MASK;
+    
+    /*do anything you want here*/
+    // GPIOE->PDDR |= (uint32_t)RED_LED_PIN;
+
+    // PORTC->PCR[SW1_PIN] |= PORT_PCR_ISF_MASK;
+    /* Clear interrupt service flag in port control register otherwise int. remains active */
 }
 
 void initializeGPIO()
 {
-	// GPIO port C,E,D
-  SIM->SCGC5 |= (uint32_t)SIM_SCGC5_PORTC_MASK | SIM_SCGC5_PORTE_MASK | SIM_SCGC5_PORTD_MASK;
-  
-	// init led
-	init_LED();
+    // init led
+    init_LED();
 
-	// init sensor(switch) nhan interrupt
-	init_switch();
-	
-	// init interrupt
+    // init sensor(switch) nhan interrupt
+    init_switch();
+
+    // init interrupt
 }
 
 int isPersonSeated()
@@ -133,6 +154,7 @@ int main()
 
     while (1)
     {
+			
         //seatBeltCheck(); // Check seat belt status and occupancy periodically
         delay(1);        // Delay to control the frequency of seat status checking
     }
