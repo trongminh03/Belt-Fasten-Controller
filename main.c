@@ -23,6 +23,7 @@ void init_SysTick(void)
 }
 
 int32_t volatile timer = 0; // Interval counter in ms
+int32_t volatile delayTimer = 0;
 
 // Initialize SysTick
 void init_SysTick_interrupt()
@@ -41,16 +42,17 @@ void SysTick_Handler(void)
     }
     else
     {
-        timer == 0;
+        timer = 0;
     }
+    delayTimer++;
 }
 
 void Delay(uint32_t TICK)
 {
-    while (timer < TICK)
+    delayTimer = 0; // Reset counter
+    while (delayTimer < TICK)
     {
-    };         // Wait 500ms
-    timer = 0; // Reset counter
+    }; // Wait 500ms
 }
 
 // Initialize LED
@@ -100,28 +102,28 @@ void PORTC_PORTD_IRQHandler(void)
     // toggle seat
     if ((PTC->PDIR & SW1_PIN) == 0)
     {
+        seatStatus = 1 - seatStatus;
+
         // reset if no longer seat (seatStatus from true to false)
-        if (seatStatus)
+        if (seatStatus == 0)
         {
             beltStatus = 0;
             fastenOnce = 0;
         }
-
-        seatStatus = !seatStatus;
     }
 
     // toggle belt only if seatStatus is true
-    if (seatStatus)
+    if (seatStatus == 1)
     {
         if ((PTC->PDIR & SW2_PIN) == 0)
         {
-            beltStatus = !beltStatus;
-        }
+            beltStatus = 1 - beltStatus;
 
-        // if belt is fasten first time, update fasten once, else remain true
-        if (!fastenOnce)
-        {
-            fastenOnce == 1;
+            // if belt is fasten first time, update fasten once, else remain true
+            if (beltStatus == 1 && fastenOnce == 0)
+            {
+                fastenOnce = 1;
+            }
         }
     }
 
@@ -161,51 +163,54 @@ int main()
     while (1)
     {
         // check if seaten
-        if (seatStatus)
+        if (seatStatus == 1)
         {
             // turn on green light
-            PTD->PTOR = GREEN_LED_PIN;
+            PTD->PDOR &= ~((uint32_t)GREEN_LED_PIN); // Assumption turn on green led
 
             // Show "Person seated" message on LCD
             // lcdPrint("Person seated");
 
             // if fasten
-            if (beltStatus)
+            if (beltStatus == 1)
             {
-                timer = 0; // Reset the timer if seat belt is detected
+                // timer = 0; // Reset the timer if seat belt is detected
+
                 // Turn off the red LED if any
                 PTE->PDOR |= RED_LED_PIN;
 
                 // skip checking other logic
                 continue;
             }
-
-            // if not fasten for the second time
-            if (fastenOnce)
-            {
-                // LCD
-
-                // Toggle red LED if seat belt is not detected after the predetermined time
-                PTE->PTOR = RED_LED_PIN; // Assumption toggle red led
-
-                Delay(500);
-            }
             else
             {
-                // update timer under threshold
-                if (timer <= TIME_THRESHOLD)
-                {
-                    // LCD
-
-                    // timer
-                }
-                else
+                // if not fasten for the second time
+                if (fastenOnce == 1)
                 {
                     // LCD
 
                     // Toggle red LED if seat belt is not detected after the predetermined time
                     PTE->PTOR = RED_LED_PIN; // Assumption toggle red led
                     Delay(500);
+                }
+                else
+                {
+                    // update timer under threshold
+                    if (timer >= TIME_THRESHOLD)
+                    {
+                        // LCD
+
+                        // timer
+                        PTE->PTOR = RED_LED_PIN; // Assumption toggle red led
+                        Delay(500);
+                    }
+                    else
+                    {
+                        // LCD
+
+                        // No red red should be turn on
+                        PTE->PDOR |= RED_LED_PIN;
+                    }
                 }
             }
         }
