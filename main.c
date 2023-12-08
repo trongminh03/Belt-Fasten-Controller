@@ -8,9 +8,9 @@
 #define TIME_THRESHOLD 5000
 
 // flag
-bool seatStatus = false;
-bool beltStatus = false;
-bool fastenOnce = false;
+uint8_t seatStatus = 0;
+uint8_t beltStatus = 0;
+uint8_t fastenOnce = 0;
 
 // Initialize TIMER
 void init_SysTick(void)
@@ -33,10 +33,15 @@ void init_SysTick_interrupt()
 }
 
 void SysTick_Handler(void)
-{ // SysTick interrupt Handler
-    if (seatStatus)
+{
+    // SysTick interrupt Handler
+    if (seatStatus && !beltStatus)
     {
         timer++; // Increment counter
+    }
+    else
+    {
+        timer == 0;
     }
 }
 
@@ -98,8 +103,8 @@ void PORTC_PORTD_IRQHandler(void)
         // reset if no longer seat (seatStatus from true to false)
         if (seatStatus)
         {
-            beltStatus = false;
-            fastenOnce = false;
+            beltStatus = 0;
+            fastenOnce = 0;
         }
 
         seatStatus = !seatStatus;
@@ -116,7 +121,7 @@ void PORTC_PORTD_IRQHandler(void)
         // if belt is fasten first time, update fasten once, else remain true
         if (!fastenOnce)
         {
-            fastenOnce == true;
+            fastenOnce == 1;
         }
     }
 
@@ -143,11 +148,6 @@ int isPersonSeated()
     return (PTC->PDIR & SW1_PIN) == 0;
 }
 
-void SysTick_Handler(void)
-{
-    timer++; // Increment timer variable on SysTick interrupt
-}
-
 int main()
 {
     // Initialize GPIO pins
@@ -158,9 +158,6 @@ int main()
     // Initialize LCD
     // init_LCD();
 
-    bool belt_fastened = false;
-    bool seatStatus = false;
-    bool belt_fastened_once = false;
     while (1)
     {
         // check if seaten
@@ -190,6 +187,7 @@ int main()
 
                 // Toggle red LED if seat belt is not detected after the predetermined time
                 PTE->PTOR = RED_LED_PIN; // Assumption toggle red led
+
                 Delay(500);
             }
             else
@@ -200,7 +198,6 @@ int main()
                     // LCD
 
                     // timer
-                    timer++;
                 }
                 else
                 {
@@ -218,7 +215,7 @@ int main()
             // lcdPrint("Seat empty");
 
             // If no person is seated, turn off the red LED and reset the timer
-            timer = 0;
+
             // Clear all LEDS
             PTE->PDOR |= RED_LED_PIN;
             PTD->PDOR |= GREEN_LED_PIN;
