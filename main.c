@@ -1,5 +1,5 @@
 #include "MKL46Z4.h"
-// #include <LCD_Library.h> // Assuming you have an LCD library
+#include "Seg_LCD.h"
 
 #define RED_LED_PIN (1 << 29)  /* buzzer */
 #define GREEN_LED_PIN (1 << 5) /* normal */
@@ -98,7 +98,6 @@ void init_switch()
 void PORTC_PORTD_IRQHandler(void)
 {
     /* Put a proper name of PORTC_PORTD Interrupt service routine ISR. See startup_MKL46Z4.s file for function name */
-
     // toggle seat
     if ((PTC->PDIR & SW1_PIN) == 0)
     {
@@ -132,10 +131,6 @@ void PORTC_PORTD_IRQHandler(void)
     PORTC->PCR[12] |= PORT_PCR_ISF_MASK;
 }
 
-void init_LCD()
-{
-}
-
 void init_GPIO()
 {
     // init led
@@ -143,11 +138,9 @@ void init_GPIO()
 
     // init switch interrupt
     init_switch();
-}
 
-int isPersonSeated()
-{
-    return (PTC->PDIR & SW1_PIN) == 0;
+    // init LCD
+    SegLCD_Init();
 }
 
 int main()
@@ -158,18 +151,23 @@ int main()
     init_SysTick_interrupt();
 
     // Initialize LCD
-    // init_LCD();
+    SegLCD_Init();
+
+    SegLCD_Set(0x1, 1);
 
     while (1)
     {
+        SegLCD_Set(0x2, 2);
+
         // check if seaten
         if (seatStatus == 1)
         {
+
             // turn on green light
             PTD->PDOR &= ~((uint32_t)GREEN_LED_PIN); // Assumption turn on green led
 
             // Show "Person seated" message on LCD
-            // lcdPrint("Person seated");
+            SegLCD_Set(0x2, 2);
 
             // if fasten
             if (beltStatus == 1)
@@ -188,6 +186,7 @@ int main()
                 if (fastenOnce == 1)
                 {
                     // LCD
+                    SegLCD_Set(0x2, 2);
 
                     // Toggle red LED if seat belt is not detected after the predetermined time
                     PTE->PTOR = RED_LED_PIN; // Assumption toggle red led
@@ -199,6 +198,7 @@ int main()
                     if (timer >= TIME_THRESHOLD)
                     {
                         // LCD
+                        SegLCD_Set(0x2, 2);
 
                         // timer
                         PTE->PTOR = RED_LED_PIN; // Assumption toggle red led
@@ -207,6 +207,7 @@ int main()
                     else
                     {
                         // LCD
+                        SegLCD_Set(0x2, 2);
 
                         // No red red should be turn on
                         PTE->PDOR |= RED_LED_PIN;
@@ -217,7 +218,7 @@ int main()
         else
         {
             // Show "Seat empty" message on LCD
-            // lcdPrint("Seat empty");
+            SegLCD_Set(0x2, 2);
 
             // If no person is seated, turn off the red LED and reset the timer
 
