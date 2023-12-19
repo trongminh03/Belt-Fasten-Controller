@@ -701,11 +701,15 @@ ARM Macro Assembler    Page 11
               00000000 
 Command Line: --debug --xref --diag_suppress=9931 --cpu=Cortex-M0+ --apcs=inter
 work --depend=.\objects\startup_mkl46z4.d -o.\objects\startup_mkl46z4.o -I.\RTE
-\Device\MKL46Z256VLL4 -I.\RTE\_Target_1 -IC:\Keil_v5\ARM\PACK\ARM\CMSIS\5.9.0\C
-MSIS\Core\Include -IC:\Keil_v5\ARM\PACK\NXP\MKL46Z4_DFP\10.0.3 --predefine="__E
-VAL SETA 1" --predefine="__UVISION_VERSION SETA 526" --predefine="_RTE_ SETA 1"
- --predefine="CPU_MKL46Z256VLL4 SETA 1" --list=.\listings\startup_mkl46z4.lst R
-TE\Device\MKL46Z256VLL4\startup_MKL46Z4.s
+\Board_Support\MKL46Z256VLL4 -I.\RTE\Device\MKL46Z256VLL4 -I.\RTE\_Target_1 -IC
+:\Keil_v5\ARM\PACK\ARM\CMSIS\5.9.0\CMSIS\Core\Include -IC:\Keil_v5\ARM\PACK\NXP
+\MKL46Z4_DFP\10.0.3\drivers -IC:\Keil_v5\ARM\PACK\NXP\MKL46Z4_DFP\10.0.3\utilit
+ies -IC:\Keil_v5\ARM\PACK\NXP\MKL46Z4_DFP\10.0.3\utilities\io -IC:\Keil_v5\ARM\
+PACK\NXP\MKL46Z4_DFP\10.0.3\utilities\log -IC:\Keil_v5\ARM\PACK\NXP\MKL46Z4_DFP
+\10.0.3\utilities\str -IC:\Keil_v5\ARM\PACK\NXP\MKL46Z4_DFP\10.0.3 --predefine=
+"__EVAL SETA 1" --predefine="__UVISION_VERSION SETA 526" --predefine="_RTE_ SET
+A 1" --predefine="CPU_MKL46Z256VLL4 SETA 1" --list=.\listings\startup_mkl46z4.l
+st RTE\Device\MKL46Z256VLL4\startup_MKL46Z4.s
 
 
 
