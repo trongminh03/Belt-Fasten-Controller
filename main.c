@@ -11,14 +11,14 @@
 #define SW2_PIN (1 << 12)      /* pin noi voi cam bien nguoi ngoi */
 #define TIME_THRESHOLD 10000
 #define last(value) ((value) % 10)
-#define MAX_TIMER_VALUE 1e9 
+#define MAX_TIMER_VALUE 1e9
 
 // flag
 uint8_t seatStatus = 0;
 uint8_t beltStatus = 0;
 uint8_t fastenOnce = 0;
 uint8_t blinking = 0;
-uint8_t toDisplay = 0;
+uint8_t numDisplay = 0;
 
 void toggle_LED();
 
@@ -28,9 +28,9 @@ int32_t volatile delayTimer = 0;
 // Initialize SysTick
 void init_SysTick_interrupt()
 {
-		SysTick->CTRL = 0;   // Disable SysTick
+    SysTick->CTRL = 0;                      // Disable SysTick
     SysTick->LOAD = SystemCoreClock / 1000; // configured the SysTick to count in .5ms
-		SysTick->VAL = 0;    // Clear current value to 0
+    SysTick->VAL = 0;                       // Clear current value to 0
     /* Select Core Clock & Enable SysTick & Enable Interrupt */
     SysTick->CTRL = SysTick_CTRL_CLKSOURCE_Msk | SysTick_CTRL_TICKINT_Msk | SysTick_CTRL_ENABLE_Msk;
 }
@@ -41,7 +41,7 @@ void SysTick_Handler(void)
     {
         timer = TIME_THRESHOLD;
     }
-		
+
     // SysTick interrupt Handler
     if (seatStatus == 1 && beltStatus == 0)
     {
@@ -52,24 +52,18 @@ void SysTick_Handler(void)
         timer = 0;
     }
 
+    // Handle delay timer
     if (delayTimer > MAX_TIMER_VALUE)
     {
         delayTimer = 0;
     }
 
+    // Handle red led blinking
     if (blinking == 1)
     {
         delayTimer++;
         toggle_LED();
     }
-}
-
-void Delay(uint32_t TICK)
-{
-    delayTimer = 0; // Reset counter
-    while (delayTimer < TICK)
-    {
-    };
 }
 
 // Initialize LED
@@ -118,8 +112,9 @@ void PORTC_PORTD_IRQHandler(void)
     // toggle seat
     if ((PTC->PDIR & SW1_PIN) == 0)
     {
-				if (beltStatus == 0)
-					seatStatus = 1 - seatStatus;
+        // toggle seat status only if belt is not fasten
+        if (beltStatus == 0)
+            seatStatus = 1 - seatStatus;
 
         // reset if no longer seat (seatStatus from true to false)
         if (seatStatus == 0)
@@ -132,6 +127,7 @@ void PORTC_PORTD_IRQHandler(void)
     // toggle belt only if seatStatus is true
     if (seatStatus == 1)
     {
+        // switch 2 is pressed
         if ((PTC->PDIR & SW2_PIN) == 0)
         {
             beltStatus = 1 - beltStatus;
@@ -171,7 +167,7 @@ void toggle_LED()
     if (delayTimer % 100 == 0)
     {
         delayTimer = 0;
-        PTE->PTOR = RED_LED_PIN; // Assumption toggle red led
+        PTE->PTOR = RED_LED_PIN; // toggle red led
     }
 }
 
@@ -179,6 +175,7 @@ int main()
 {
     // Initialize GPIO pins
     init_GPIO();
+    
     // Initialize SysTick timer for 5ms ticks
     init_SysTick_interrupt();
 
@@ -199,13 +196,13 @@ int main()
             PTD->PDOR &= ~((uint32_t)GREEN_LED_PIN);
 
             // Show "Person seated" message on LCD
-            toDisplay = 1;
+            numDisplay = 1;
 
             // if fasten
             if (beltStatus == 1)
             {
                 timer = 0; // Reset the timer if seat belt is detected
-                toDisplay = 11;
+                numDisplay = 11;
 
                 // Turn off the red LED if any
                 PTE->PDOR |= RED_LED_PIN;
@@ -216,7 +213,7 @@ int main()
                 // if not fasten for the second time | greater than time threshold
                 if (fastenOnce == 1 || timer >= TIME_THRESHOLD)
                 {
-                    toDisplay = 10;
+                    numDisplay = 10;
 
                     blinking = 1;
                 }
@@ -230,17 +227,17 @@ int main()
         else
         {
             // Show "Seat empty" message on LCD
-            toDisplay = 0;
+            numDisplay = 0;
 
             // If no person is seated, turn off the red LED and reset the timer
-						blinking = 0;
-					
+            blinking = 0;
+
             // Clear all LEDS
             PTE->PDOR |= RED_LED_PIN;
             PTD->PDOR |= GREEN_LED_PIN;
         }
 
-        setDisplay(toDisplay);
+        setDisplay(numDisplay);
     }
 
     return 0;
