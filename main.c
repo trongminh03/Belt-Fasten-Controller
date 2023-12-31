@@ -7,8 +7,8 @@
 
 #define RED_LED_PIN (1 << 29)  /* buzzer */
 #define GREEN_LED_PIN (1 << 5) /* normal */
-#define SW1_PIN (1 << 3)       /* pin noi voi cam bien that day an toan */
-#define SW2_PIN (1 << 12)      /* pin noi voi cam bien nguoi ngoi */
+#define SW1_PIN (1 << 3)       /* pin noi voi cam bien nguoi ngoi */
+#define SW2_PIN (1 << 12)      /* pin noi voi cam bien that day an toan */
 #define TIME_THRESHOLD 10000
 #define last(value) ((value) % 10)
 #define MAX_TIMER_VALUE 1e9
