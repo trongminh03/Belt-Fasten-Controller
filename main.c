@@ -8,7 +8,7 @@
 #define RED_LED_PIN (1 << 29)  /* buzzer */
 #define GREEN_LED_PIN (1 << 5) /* normal */
 #define SW1_PIN (1 << 3)       /* pin noi voi cam bien nguoi ngoi */
-#define SW2_PIN (1 << 12)      /* pin noi voi cam bien that day an toan */
+#define SW3_PIN (1 << 12)      /* pin noi voi cam bien that day an toan */
 #define TIME_THRESHOLD 10000
 #define last(value) ((value) % 10)
 #define MAX_TIMER_VALUE 1e9
@@ -95,9 +95,9 @@ void init_switch()
     PTC->PDDR &= ~((uint32_t)SW1_PIN);
     PORTC->PCR[3] |= PORT_PCR_IRQC(0xA);
 
-    // Init switch 2
+    // Init switch 3
     PORTC->PCR[12] = PORT_PCR_MUX(1) | PORT_PCR_PE_MASK | PORT_PCR_PS_MASK;
-    PTC->PDDR &= ~((uint32_t)SW2_PIN);
+    PTC->PDDR &= ~((uint32_t)SW3_PIN);
     PORTC->PCR[12] |= PORT_PCR_IRQC(0xA);
 
     NVIC_ClearPendingIRQ(31);
@@ -127,8 +127,8 @@ void PORTC_PORTD_IRQHandler(void)
     // toggle belt only if seatStatus is true
     if (seatStatus == 1)
     {
-        // switch 2 is pressed
-        if ((PTC->PDIR & SW2_PIN) == 0)
+        // switch 3 is pressed
+        if ((PTC->PDIR & SW3_PIN) == 0)
         {
             beltStatus = 1 - beltStatus;
 
