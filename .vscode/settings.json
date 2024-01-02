@@ -1,0 +1,9 @@
+{
+    "files.associations": {
+        "board.h": "c",
+        "fsl_device_registers.h": "c",
+        "mkl46z4.h": "c",
+        "pin_mux.h": "c",
+        "seg_lcd.h": "c"
+    }
+}

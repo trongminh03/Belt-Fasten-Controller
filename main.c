@@ -1,9 +1,7 @@
 #include "MKL46Z4.h"
 #include "Seg_LCD.h"
 #include "pin_mux.h"
-#include "fsl_device_registers.h"
-#include "fsl_debug_console.h"
-#include "board.h"
+#include "clock_config.h"
 
 #define RED_LED_PIN (1 << 29)  /* buzzer */
 #define GREEN_LED_PIN (1 << 5) /* normal */
@@ -29,7 +27,7 @@ int32_t volatile delayTimer = 0;
 void init_SysTick_interrupt()
 {
     SysTick->CTRL = 0;                      // Disable SysTick
-    SysTick->LOAD = SystemCoreClock / 1000; // configured the SysTick to count in .5ms
+    SysTick->LOAD = SystemCoreClock / 1000; // configured the SysTick to count in 1ms
     SysTick->VAL = 0;                       // Clear current value to 0
     /* Select Core Clock & Enable SysTick & Enable Interrupt */
     SysTick->CTRL = SysTick_CTRL_CLKSOURCE_Msk | SysTick_CTRL_TICKINT_Msk | SysTick_CTRL_ENABLE_Msk;
